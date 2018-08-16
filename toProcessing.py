@@ -10,6 +10,8 @@ processingPort = 10001       #Processingで設定したポート番号
 
 basePath = os.path.dirname(os.path.abspath(__file__))
 logDir = os.path.normpath(os.path.join(basePath,'../flask-app/log'))
+sensor1FileName = "1.csv"
+sensor2FileName = "2.csv"
 
 isSensorDetect = False
 positionY = '0'
@@ -50,7 +52,6 @@ def analyzeSensorData(data):
         positionY = LOWERPOSITION
         print("bib sensor 2 is detected")
 
-
 def main():
     global isSensorDetect
 
@@ -63,6 +64,17 @@ def main():
     observer.start()
 
     try:
+        file1 = open(logDir + "/" + sensor1FileName, 'w')
+        if len(open(logDir + "/" + sensor1FileName).readlines()) != 0:
+            print("im alive")
+            file1.write('')
+        file1.close()
+
+        file2 = open(logDir + "/" + sensor1FileName, 'w')
+        if len(open(logDir + "/" + sensor1FileName).readlines()) != 0:
+            file2.write('')
+        file2.close()
+
         while True:
             if(isSensorDetect):
                 socketClient.send(positionY.encode('utf-8'))
