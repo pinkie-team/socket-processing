@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import socket
-import os,csv
+import os,csv,time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
@@ -13,11 +13,12 @@ logDir = os.path.normpath(os.path.join(basePath,'../flask-app/log'))
 sensor1FileName = "1.csv"
 sensor2FileName = "2.csv"
 
-isSensorDetect = False
+isSensor1Detect = False
+isSensor2Detect = False
 positionY = '0'
 
 UPPERPOSITION = '100'
-LOWERPOSITION = '500'
+LOWERPOSITION = '700'
 
 class EventHandler(FileSystemEventHandler):
     def on_created(self, event):
@@ -42,18 +43,19 @@ def getext(filename):
     return os.path.splitext(filename)[-1].lower()
 
 def analyzeSensorData(data):
-    global positionY,isSensorDetect
+    global positionY,isSensor1Detect,isSensor2Detect
 
-    isSensorDetect = True
     if(data[1] == '1'):
         positionY = UPPERPOSITION
+        isSensor1Detect = True
         print("bib sensor 1 is detected")
     elif(data[1] == '2'):
         positionY = LOWERPOSITION
+        isSensor2Detect = True
         print("bib sensor 2 is detected")
 
 def main():
-    global isSensorDetect
+    global isSensor1Detect,isSensor2Detect
 
     socketClient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     socketClient.connect((processingHost, processingPort))
@@ -63,6 +65,18 @@ def main():
     observer.schedule(eventHandler, logDir)
     observer.start()
 
+    '''
+    while True:
+        if(isSensor1Detect and isSensor2Detect):
+            socketClient.send("300".encode('utf-8'))
+            isSensor1Detect = False
+            isSensor2Detect = False
+        elif(isSensor1Detect or isSensor2Detect):
+            socketClient.send(positionY.encode('utf-8'))
+            isSensor1Detect = False
+            isSensor2Detect = False
+        time.sleep(0.1)
+    '''
     try:
         file1 = open(logDir + "/" + sensor1FileName, 'w')
         if len(open(logDir + "/" + sensor1FileName).readlines()) != 0:
@@ -76,9 +90,16 @@ def main():
         file2.close()
 
         while True:
-            if(isSensorDetect):
+            if(isSensor1Detect and isSensor2Detect):
+                socketClient.send("400".encode('utf-8'))
+                print("1 and 2 sensor is detected")
+                isSensor1Detect = False
+                isSensor2Detect = False
+            elif(isSensor1Detect or isSensor2Detect):
                 socketClient.send(positionY.encode('utf-8'))
-                isSensorDetect = False
+                isSensor1Detect = False
+                isSensor2Detect = False
+            time.sleep(0.5)
     except (Exception, KeyboardInterrupt):
         observer.stop()
     observer.join()
