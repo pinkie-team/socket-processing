@@ -10,13 +10,19 @@ processingPort = 10001       #Processingで設定したポート番号
 
 basePath = os.path.dirname(os.path.abspath(__file__))
 logDir = os.path.normpath(os.path.join(basePath,'../flask-app/log'))
-sensor1FileName = "1.csv"
-sensor2FileName = "2.csv"
 
-isSensor1Detect = False
-isSensor2Detect = False
+motion1FileName = "motion_1.csv"
+motion2FileName = "motion_2.csv"
+sound1FileName = "sound_1.csv"
+sound2FileName = "sound_2.csv"
+
+isMotion1Detect = False
+isMotion2Detect = False
+isSound1Detect = False
+isSound2Detect = False
+
+#TODO 座標にxも追加したい ex)(0,300)
 positionY = '0'
-
 UPPERPOSITION = '100'
 LOWERPOSITION = '700'
 
@@ -30,8 +36,8 @@ class EventHandler(FileSystemEventHandler):
             with open(event.src_path, "r") as f:
                 reader = csv.reader(f)
                 for row in reader:
-                    analyzeSensorData(row)
-            with open(event.src_path, "w") as f:
+                    analyzeSensorData(getSensorType(event.src_path),row)
+            with open(event.src_path, 'w') as f:
                 f.write('')
         return
 
@@ -42,20 +48,42 @@ class EventHandler(FileSystemEventHandler):
 def getext(filename):
     return os.path.splitext(filename)[-1].lower()
 
-def analyzeSensorData(data):
-    global positionY,isSensor1Detect,isSensor2Detect
+def getSensorType(filename):
+    basename = os.path.basename(filename)
+    return basename.split('_')[0]
 
-    if(data[1] == '1'):
-        positionY = UPPERPOSITION
-        isSensor1Detect = True
-        print("bib sensor 1 is detected")
-    elif(data[1] == '2'):
-        positionY = LOWERPOSITION
-        isSensor2Detect = True
-        print("bib sensor 2 is detected")
+def analyzeSensorData(sensorType,data):
+    global positionY,isMotion1Detect,isMotion2Detect,isSound1Detect,isSound2Detect
+
+    #TODO ファイル名で更に場合分け
+    if(sensorType == 'motion'):
+        if(data[1] == '1'):
+            positionY = UPPERPOSITION
+            isMotion1Detect = True
+            print('motion sensor 1 is detected')
+        elif(data[1] == '2'):
+            positionY = LOWERPOSITION
+            isMotion2Detect = True
+            print('motion sensor 2 is detected')
+    if(sensorType == 'sound'):
+        if(data[1] == '1'):
+            positionY = UPPERPOSITION
+            isSound1Detect = True
+            print('sound sensor 1 is detected')
+        elif(data[1] == '2'):
+            positionY = LOWERPOSITION
+            isSound2Detect = True
+            print('sound sensor 2 is detected')
+
+def resetSensorFlag():
+    global isMotion1Detect,isMotion2Detect,isSound1Detect,isSound2Detect
+    isMotion1Detect = False
+    isMotion2Detect = False
+    isSound1Detect = False
+    isSound2Detect = False
 
 def main():
-    global isSensor1Detect,isSensor2Detect
+    global isMotion1Detect,isMotion2Detect,isSound1Detect,isSound2Detect
 
     socketClient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     socketClient.connect((processingHost, processingPort))
@@ -65,40 +93,38 @@ def main():
     observer.schedule(eventHandler, logDir)
     observer.start()
 
-    '''
-    while True:
-        if(isSensor1Detect and isSensor2Detect):
-            socketClient.send("300".encode('utf-8'))
-            isSensor1Detect = False
-            isSensor2Detect = False
-        elif(isSensor1Detect or isSensor2Detect):
-            socketClient.send(positionY.encode('utf-8'))
-            isSensor1Detect = False
-            isSensor2Detect = False
-        time.sleep(0.1)
-    '''
+    #TODO 音声ログの場合も追記
     try:
-        file1 = open(logDir + "/" + sensor1FileName, 'w')
-        if len(open(logDir + "/" + sensor1FileName).readlines()) != 0:
-            print("im alive")
-            file1.write('')
-        file1.close()
+        motion1File = open(logDir + '/' + motion1FileName, 'w')
+        if len(open(logDir + '/' + motion1FileName).readlines()) != 0:
+            motion1File.write('')
+        motion1File.close()
 
-        file2 = open(logDir + "/" + sensor1FileName, 'w')
-        if len(open(logDir + "/" + sensor1FileName).readlines()) != 0:
-            file2.write('')
-        file2.close()
+        motion2File = open(logDir + '/' + motion2FileName, 'w')
+        if len(open(logDir + '/' + motion2FileName).readlines()) != 0:
+            motion2File.write('')
+        motion2File.close()
+
+        sound1File = open(logDir + '/' + sound1FileName, 'w')
+        if len(open(logDir + '/' + sound1FileName).readlines()) != 0:
+            sound1File.write('')
+        sound1File.close()
+
+        sound2File = open(logDir + '/' + sound2FileName, 'w')
+        if len(open(logDir + '/' + sound2FileName).readlines()) != 0:
+            sound2File.write('')
+        sound2File.close()
 
         while True:
-            if(isSensor1Detect and isSensor2Detect):
-                socketClient.send("400".encode('utf-8'))
-                print("1 and 2 sensor is detected")
-                isSensor1Detect = False
-                isSensor2Detect = False
-            elif(isSensor1Detect or isSensor2Detect):
+            if(isMotion1Detect and isMotion2Detect):
+                socketClient.send('400'.encode('utf-8'))
+            elif(isMotion1Detect or isMotion2Detect):
                 socketClient.send(positionY.encode('utf-8'))
-                isSensor1Detect = False
-                isSensor2Detect = False
+            elif(isSound1Detect and isSound2Detect):
+                socketClient.send('400'.encode('utf-8'))
+            elif(isSound1Detect or isSound2Detect):
+                socketClient.send(positionY.encode('utf-8'))
+            resetSensorFlag()
             time.sleep(0.5)
     except (Exception, KeyboardInterrupt):
         observer.stop()
