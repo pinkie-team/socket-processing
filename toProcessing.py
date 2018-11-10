@@ -13,13 +13,17 @@ logDir = os.path.normpath(os.path.join(basePath,'../flask-app/log'))
 
 motion1FileName = "motion_1.csv"
 motion2FileName = "motion_2.csv"
+motion3FileName = "motion_3.csv"
 sound1FileName = "sound_1.csv"
 sound2FileName = "sound_2.csv"
+sound3FileName = "sound_3.csv"
 
 isMotion1Detect = False
 isMotion2Detect = False
+isMotion3Detect = False
 isSound1Detect = False
 isSound2Detect = False
+isSound3Detect = False
 
 #TODO 座標にxも追加したい ex)(0,300)
 positionY = '0'
@@ -53,7 +57,8 @@ def getSensorType(filename):
     return basename.split('_')[0]
 
 def analyzeSensorData(sensorType,data):
-    global positionY,isMotion1Detect,isMotion2Detect,isSound1Detect,isSound2Detect
+    global positionY,isMotion1Detect,isMotion2Detect,isMotion3Detect
+    global isSound1Detect,isSound2Detect,isSound3Detect
 
     #TODO ファイル名で更に場合分け
     if(sensorType == 'motion'):
@@ -65,6 +70,10 @@ def analyzeSensorData(sensorType,data):
             positionY = LOWERPOSITION
             isMotion2Detect = True
             print('motion sensor 2 is detected')
+        elif(data[1] == '3'):
+            positionY = LOWERPOSITION
+            isMotion3Detect = True
+            print('motion sensor 3 is detected')
     if(sensorType == 'sound'):
         if(data[1] == '1'):
             positionY = UPPERPOSITION
@@ -74,16 +83,24 @@ def analyzeSensorData(sensorType,data):
             positionY = LOWERPOSITION
             isSound2Detect = True
             print('sound sensor 2 is detected')
+        elif(data[1] == '3'):
+            positionY = LOWERPOSITION
+            isSound3Detect = True
+            print('sound sensor 3 is detected')
 
 def resetSensorFlag():
-    global isMotion1Detect,isMotion2Detect,isSound1Detect,isSound2Detect
+    global isMotion1Detect,isMotion2Detect,isMotion3Detect
+    global isSound1Detect,isSound2Detect,isSound3Detect
     isMotion1Detect = False
     isMotion2Detect = False
+    isMotion3Detect = False
     isSound1Detect = False
     isSound2Detect = False
+    isSound3Detect = False
 
 def main():
-    global isMotion1Detect,isMotion2Detect,isSound1Detect,isSound2Detect
+    global isMotion1Detect,isMotion2Detect,isMotion3Detect
+    global isSound1Detect,isSound2Detect,isSound3Detect
 
     socketClient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     socketClient.connect((processingHost, processingPort))
@@ -105,6 +122,11 @@ def main():
             motion2File.write('')
         motion2File.close()
 
+        motion3File = open(logDir + '/' + motion3FileName, 'w')
+        if len(open(logDir + '/' + motion3FileName).readlines()) != 0:
+            motion3File.write('')
+        motion3File.close()
+
         sound1File = open(logDir + '/' + sound1FileName, 'w')
         if len(open(logDir + '/' + sound1FileName).readlines()) != 0:
             sound1File.write('')
@@ -114,6 +136,11 @@ def main():
         if len(open(logDir + '/' + sound2FileName).readlines()) != 0:
             sound2File.write('')
         sound2File.close()
+
+        sound3File = open(logDir + '/' + sound3FileName, 'w')
+        if len(open(logDir + '/' + sound3FileName).readlines()) != 0:
+            sound3File.write('')
+        sound3File.close()
 
         while True:
             if(isMotion1Detect and isMotion2Detect):
