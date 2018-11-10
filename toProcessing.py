@@ -25,10 +25,16 @@ isSound1Detect = False
 isSound2Detect = False
 isSound3Detect = False
 
+isMotionDetect = False
+isSoundDetect = False
+
 #TODO 座標にxも追加したい ex)(0,300)
 positionY = '0'
 UPPERPOSITION = '100'
 LOWERPOSITION = '700'
+
+motionSensorVal = ['0','0','0']
+soundSensorVal = ['0','0','0']
 
 class EventHandler(FileSystemEventHandler):
     def on_created(self, event):
@@ -59,44 +65,55 @@ def getSensorType(filename):
 def analyzeSensorData(sensorType,data):
     global positionY,isMotion1Detect,isMotion2Detect,isMotion3Detect
     global isSound1Detect,isSound2Detect,isSound3Detect
+    global motionSensorVal,soundSensorVal
 
     #TODO ファイル名で更に場合分け
     if(sensorType == 'motion'):
         if(data[1] == '1'):
             positionY = UPPERPOSITION
             isMotion1Detect = True
+            motionSensorVal[0] = data[2]
             print('motion sensor 1 is detected')
         elif(data[1] == '2'):
             positionY = LOWERPOSITION
             isMotion2Detect = True
+            motionSensorVal[1] = data[2]
             print('motion sensor 2 is detected')
         elif(data[1] == '3'):
             positionY = LOWERPOSITION
             isMotion3Detect = True
+            motionSensorVal[2] = data[2]
             print('motion sensor 3 is detected')
     if(sensorType == 'sound'):
         if(data[1] == '1'):
             positionY = UPPERPOSITION
             isSound1Detect = True
+            soundSensorVal[0] = data[2]
             print('sound sensor 1 is detected')
         elif(data[1] == '2'):
             positionY = LOWERPOSITION
             isSound2Detect = True
+            soundSensorVal[1] = data[2]
             print('sound sensor 2 is detected')
         elif(data[1] == '3'):
             positionY = LOWERPOSITION
             isSound3Detect = True
+            soundSensorVal[2] = data[2]
             print('sound sensor 3 is detected')
 
 def resetSensorFlag():
     global isMotion1Detect,isMotion2Detect,isMotion3Detect
     global isSound1Detect,isSound2Detect,isSound3Detect
+    global motionSensorVal,soundSensorVal
+
     isMotion1Detect = False
     isMotion2Detect = False
     isMotion3Detect = False
     isSound1Detect = False
     isSound2Detect = False
     isSound3Detect = False
+    motionSensorVal = ['0','0','0']
+    soundSensorVal = ['0','0','0']
 
 def main():
     global isMotion1Detect,isMotion2Detect,isMotion3Detect
@@ -143,7 +160,7 @@ def main():
         sound3File.close()
 
         while True:
-            if(isMotion1Detect and isMotion2Detect):
+            if(isMotion1Detect and isMotion2Detect and isMotion3Detect):
                 socketClient.send('400'.encode('utf-8'))
             elif(isMotion1Detect or isMotion2Detect):
                 socketClient.send(positionY.encode('utf-8'))
