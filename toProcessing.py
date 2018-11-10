@@ -7,6 +7,8 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import traceback
 
+DEMO = True
+
 processingHost = "127.0.0.1" #Processingで立ち上げたサーバのIPアドレス
 processingPort = 10001       #Processingで設定したポート番号
 
@@ -30,10 +32,18 @@ isSound3Detect = False
 isMotionDetect = False
 isSoundDetect = False
 
+'''
 window_width = 1440
 window_height = 900
 x1, x2, x3 = 100.0, window_width / 2.0, window_width - 100.0
 y1, y2, y3 = window_height - 100, 100.0, window_height - 100.0
+'''
+
+window_width = 1824
+window_height = 984
+x1, x2, x3 = 516.8, 1064.0, 1611.2
+y1, y2, y3 = 278.8, 574.0, 869.2
+
 r1, r2, r3 = 1.0, 1.0, 1.0
 MOTION_ALPHA = 1.0
 SOUND_ALPHA = 1.0
@@ -223,21 +233,17 @@ def main():
 
         while True:
             if(isMotion1Detect and isMotion2Detect and isMotion3Detect):
-                '''
-                r1 += 1.0
-                r2 += 1.0
-                r3 += 1.0
-                '''
-                while not is_collision():
-                    r1 += float(motionSensorVal[0])*MOTION_ALPHA
-                    r2 += float(motionSensorVal[1])*MOTION_ALPHA
-                    r3 += float(motionSensorVal[2])*MOTION_ALPHA
-                #if is_collision():
-                print(position)
-                resetSensorFlag()
-
-                #socketClient.send('400'.encode('utf-8'))
-                socketClient.send('{},{}'.format(position[0],position[1]).encode('utf-8'))
+                if DEMO:
+                    socketClient.send('{},{}'.format(window_width/2.0,window_height/2.0).encode('utf-8'))
+                else:
+                    while not is_collision():
+                        r1 += float(motionSensorVal[0])*MOTION_ALPHA
+                        r2 += float(motionSensorVal[1])*MOTION_ALPHA
+                        r3 += float(motionSensorVal[2])*MOTION_ALPHA
+                    #if is_collision():
+                    print(position)
+                    resetSensorFlag()
+                    socketClient.send('{},{}'.format(position[0],position[1]).encode('utf-8'))
 
             elif(isMotion1Detect and isMotion2Detect):
                 socketClient.send('200,200'.encode('utf-8'))
@@ -260,21 +266,23 @@ def main():
 
 
             if(isSound1Detect and isSound2Detect and isSound3Detect):
-                '''
-                r1 += 1.0
-                r2 += 1.0
-                r3 += 1.0
-                '''
-                while not is_collision():
-                    r1 += float(motionSensorVal[0])*MOTION_ALPHA
-                    r2 += float(motionSensorVal[1])*MOTION_ALPHA
-                    r3 += float(motionSensorVal[2])*MOTION_ALPHA
-                #if is_collision():
-                print(position)
-                resetSensorFlag()
-
-                #socketClient.send('400'.encode('utf-8'))
-                socketClient.send('{},{}'.format(position[0],position[1]).encode('utf-8'))
+                if DEMO:
+                    socketClient.send('{},{}'.format(window_width/2.0,window_height/2.0).encode('utf-8'))
+                else:
+                    '''
+                    r1 += 1.0
+                    r2 += 1.0
+                    r3 += 1.0
+                    '''
+                    while not is_collision():
+                        r1 += float(motionSensorVal[0])*MOTION_ALPHA
+                        r2 += float(motionSensorVal[1])*MOTION_ALPHA
+                        r3 += float(motionSensorVal[2])*MOTION_ALPHA
+                    #if is_collision():
+                    print(position)
+                    resetSensorFlag()
+                    socketClient.send('{},{}'.format(window_width/2.0,window_height/2.0).encode('utf-8'))
+                    #socketClient.send('400'.encode('utf-8'))
 
             elif(isSound1Detect and isSound2Detect):
                 socketClient.send('200,200'.encode('utf-8'))
@@ -295,15 +303,7 @@ def main():
                 socketClient.send('{},{}'.format(x3,y3).encode('utf-8'))
                 resetSensorFlag()
 
-            '''
-            if(isSound1Detect and isSound2Detect):
-                socketClient.send('400'.encode('utf-8'))
-                resetSensorFlag()
-            elif(isSound1Detect or isSound2Detect):
-                socketClient.send(positionY.encode('utf-8'))
-                resetSensorFlag()
-            '''
-            time.sleep(10)
+            time.sleep(5)
     except (Exception, KeyboardInterrupt):
         traceback.print_exc()
         observer.stop()
