@@ -249,10 +249,10 @@ def main():
                 socketClient.send('200,200'.encode('utf-8'))
                 resetSensorFlag()
             elif(isMotion1Detect and isMotion3Detect):
-                socketClient.send('700,1000'.encode('utf-8'))
+                socketClient.send('500,700'.encode('utf-8'))
                 resetSensorFlag()
             elif(isMotion2Detect and isMotion3Detect):
-                socketClient.send('1000,200'.encode('utf-8'))
+                socketClient.send('800,200'.encode('utf-8'))
                 resetSensorFlag()
             elif(isMotion1Detect):
                 socketClient.send('{},{}'.format(x1,y1).encode('utf-8'))
@@ -303,7 +303,7 @@ def main():
                 socketClient.send('{},{}'.format(x3,y3).encode('utf-8'))
                 resetSensorFlag()
 
-            time.sleep(5)
+            time.sleep(1)
     except (Exception, KeyboardInterrupt):
         traceback.print_exc()
         observer.stop()
