@@ -7,7 +7,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import traceback
 
-DEMO = True
+DEMO = False
 
 processingHost = "127.0.0.1" #Processingで立ち上げたサーバのIPアドレス
 processingPort = 10001       #Processingで設定したポート番号
@@ -45,7 +45,7 @@ x1, x2, x3 = 516.8, 1064.0, 1611.2
 y1, y2, y3 = 278.8, 574.0, 869.2
 
 r1, r2, r3 = 1.0, 1.0, 1.0
-MOTION_ALPHA = 1.0
+MOTION_ALPHA = 0.1
 SOUND_ALPHA = 1.0
 
 #TODO 座標にxも追加したい ex)(0,300)
@@ -127,42 +127,139 @@ def calc_kouten():
     global x1,x2,x3,y1,y2,y3
     global window_width, window_height
 
+    results = {
+        'x12a': 0.0, 'y12a': 0.0, 'x12b': 0.0, 'y12b': 0.0,
+        'x13a': 0.0, 'y13a': 0.0, 'x13b': 0.0, 'y13b': 0.0,
+        'x23a': 0.0, 'y23a': 0.0, 'x23b': 0.0, 'y23b': 0.0
+    }
+
     try:
-        l = math.sqrt(pow(x2-x1, 2) + pow(y2-y1, 2))
-        theta1 = math.atan2(y2-y1, x2-x1)
-        theta2 = math.acos((pow(l, 2) + pow(r1, 2) - pow(r2, 2)) / (2 * l * r1))
+        l12 = math.sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2))
+        theta12a = math.atan2(y2 - y1, x2 - x1)
+        theta12b = math.acos((pow(l12, 2) + pow(r1, 2) - pow(r2, 2)) / (2 * l12 * r1))
+
+        # 円1,2の交点
+        x12a = x1 + r1 * math.cos(theta12a + theta12b)
+        y12a = y1 + r1 * math.sin(theta12a + theta12b)
+        x12b = x1 + r1 * math.cos(theta12a - theta12b)
+        y12b = y1 + r1 * math.sin(theta12a - theta12b)
+
+        results['x12a'] = x12a
+        results['y12a'] = y12a
+        results['x12b'] = x12b
+        results['y12b'] = y12b
     except ValueError:
-        return {'x1': 0.0, 'y1': 0.0, 'x2': 0.0, 'y2': 0.0}
+        pass
 
-    xi1 = x1 + r1 * math.cos(theta1 + theta2)
-    yi1 = y1 + r1 * math.sin(theta1 + theta2)
-    xi2 = x1 + r1 * math.cos(theta1 - theta2)
-    yi2 = y1 + r1 * math.sin(theta1 - theta2)
+    try:
+        l23 = math.sqrt(pow(x3 - x2, 2) + pow(y3 - y2, 2))
+        theta23a = math.atan2(y3 - y2, x3 - x2)
+        theta23b = math.acos((pow(l23, 2) + pow(r2, 2) - pow(r3, 2)) / (2 * l23 * r2))
 
-    return {'x1': xi1, 'y1': yi1, 'x2': xi2, 'y2': yi2}
+        # 円2,3の交点
+        x23a = x2 + r2 * math.cos(theta23a + theta23b)
+        y23a = y2 + r2 * math.sin(theta23a + theta23b)
+        x23b = x2 + r2 * math.cos(theta23a - theta23b)
+        y23b = y2 + r2 * math.sin(theta23a - theta23b)
+
+        results['x23a'] = x23a
+        results['y23a'] = y23a
+        results['x23b'] = x23b
+        results['y23b'] = y23b
+    except ValueError:
+        pass
+
+    try:
+        l13 = math.sqrt(pow(x3 - x1, 2) + pow(y3 - y1, 2))
+        theta13a = math.atan2(y3 - y1, x3 - x1)
+        theta13b = math.acos((pow(l13, 2) + pow(r1, 2) - pow(r3, 2)) / (2 * l13 * r1))
+
+        # 円1,3の交点
+        x13a = x1 + r1 * math.cos(theta13a + theta13b)
+        y13a = y1 + r1 * math.sin(theta13a + theta13b)
+        x13b = x1 + r1 * math.cos(theta13a - theta13b)
+        y13b = y1 + r1 * math.sin(theta13a - theta13b)
+
+        results['x13a'] = x13a
+        results['y13a'] = y13a
+        results['x13b'] = x13b
+        results['y13b'] = y13b
+    except ValueError:
+        pass
+
+    return results
 
 
 def is_collision():
     global position
     kouten = calc_kouten()
-    dx1 = abs(kouten['x1'] - x3)
-    dx2 = abs(kouten['x2'] - x3)
 
-    dy1 = abs(kouten['y1'] - y3)
-    dy2 = abs(kouten['y2'] - x3)
+    dx12a = abs(kouten['x12a'] - x3)
+    dy12a = abs(kouten['y12a'] - y3)
+    dx12b = abs(kouten['x12b'] - x3)
+    dy12b = abs(kouten['y12b'] - y3)
 
-    if math.sqrt(pow(dx1, 2)+pow(dy1, 2)) <= r3:
-        position[0] = kouten['x1']
-        position[1] = kouten['y1']
+    dx13a = abs(kouten['x13a'] - x2)
+    dy13a = abs(kouten['y13a'] - y2)
+    dx13b = abs(kouten['x13b'] - x2)
+    dy13b = abs(kouten['y13b'] - y2)
+
+    dx23a = abs(kouten['x23a'] - x1)
+    dy23a = abs(kouten['y23a'] - y1)
+    dx23b = abs(kouten['x23b'] - x1)
+    dy23b = abs(kouten['y23b'] - y1)
+
+    # 円1,2の交点aが円3の半径内にあるかどうか
+    if math.sqrt(pow(dx12a, 2) + pow(dy12a, 2)) <= r3 and kouten['x12a'] != 0 and kouten['y12a'] != 0:
+        position[0] = kouten['x12a']
+        position[1] = kouten['y12a']
         print('************************')
-        print('1: {} {}'.format(kouten['x1'], kouten['y1']))
+        print('1,2 A: {} {}'.format(kouten['x12a'], kouten['y12a']))
         print('************************')
         return True
-    if math.sqrt(pow(dx2, 2)+pow(dy2, 2)) <= r3:
-        position[0] = kouten['x2']
-        position[1] = kouten['y2']
+
+    # 円1,2の交点bが円3の半径内にあるかどうか
+    if math.sqrt(pow(dx12b, 2) + pow(dy12b, 2)) <= r3 and kouten['x12b'] != 0 and kouten['y12b'] != 0:
+        position[0] = kouten['x12b']
+        position[1] = kouten['y12b']
         print('************************')
-        print('2: {} {}'.format(kouten['x2'], kouten['y2']))
+        print('1,2 B: {} {}'.format(kouten['x12b'], kouten['y12b']))
+        print('************************')
+        return True
+
+    # 円1,3の交点aが円2の半径内にあるかどうか
+    if math.sqrt(pow(dx13a, 2) + pow(dy13a, 2)) <= r2 and kouten['x13a'] != 0 and kouten['y13a'] != 0:
+        position[0] = kouten['x13a']
+        position[1] = kouten['y13a']
+        print('************************')
+        print('1,3 A: {} {}'.format(kouten['x13a'], kouten['y13a']))
+        print('************************')
+        return True
+
+    # 円1,3の交点bが円2の半径内にあるかどうか
+    if math.sqrt(pow(dx13b, 2) + pow(dy13b, 2)) <= r2 and kouten['x13b'] != 0 and kouten['y13b'] != 0:
+        position[0] = kouten['x13b']
+        position[1] = kouten['y13b']
+        print('************************')
+        print('1,3 B: {} {}'.format(kouten['x13b'], kouten['y13b']))
+        print('************************')
+        return True
+
+    # 円2,3の交点aが円1の半径内にあるかどうか
+    if math.sqrt(pow(dx23a, 2) + pow(dy23a, 2)) <= r1 and kouten['x23a'] != 0 and kouten['y23a'] != 0:
+        position[0] = kouten['x23a']
+        position[1] = kouten['y23a']
+        print('************************')
+        print('2,3 A: {} {}'.format(kouten['x23a'], kouten['y23a']))
+        print('************************')
+        return True
+
+    # 円2,3の交点bが円1の半径内にあるかどうか
+    if math.sqrt(pow(dx23b, 2) + pow(dy23b, 2)) <= r1 and kouten['x23b'] != 0 and kouten['y23b'] != 0:
+        position[0] = kouten['x23b']
+        position[1] = kouten['y23b']
+        print('************************')
+        print('2,3 B: {} {}'.format(kouten['x23b'], kouten['y23b']))
         print('************************')
         return True
 
@@ -173,6 +270,9 @@ def resetSensorFlag():
     global isSound1Detect,isSound2Detect,isSound3Detect
     global motionSensorVal,soundSensorVal
     global r1,r2,r3
+    global position
+
+    print(position)
 
     isMotion1Detect = False
     isMotion2Detect = False
@@ -189,7 +289,7 @@ def main():
     global isSound1Detect,isSound2Detect,isSound3Detect
     global position
     global r1,r2,r3
-    global motionSensorVal
+    global motionSensorVal,soundSensorVal
 
     socketClient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     socketClient.connect((processingHost, processingPort))
@@ -237,9 +337,9 @@ def main():
                     socketClient.send('{},{}'.format(window_width/2.0,window_height/2.0).encode('utf-8'))
                 else:
                     while not is_collision():
-                        r1 += float(motionSensorVal[0])*MOTION_ALPHA
-                        r2 += float(motionSensorVal[1])*MOTION_ALPHA
-                        r3 += float(motionSensorVal[2])*MOTION_ALPHA
+                        r1 += MOTION_ALPHA / float(motionSensorVal[0])
+                        r2 += MOTION_ALPHA / float(motionSensorVal[1])
+                        r3 += MOTION_ALPHA / float(motionSensorVal[2])
                     #if is_collision():
                     print(position)
                     resetSensorFlag()
@@ -269,19 +369,14 @@ def main():
                 if DEMO:
                     socketClient.send('{},{}'.format(window_width/2.0,window_height/2.0).encode('utf-8'))
                 else:
-                    '''
-                    r1 += 1.0
-                    r2 += 1.0
-                    r3 += 1.0
-                    '''
                     while not is_collision():
-                        r1 += float(motionSensorVal[0])*MOTION_ALPHA
-                        r2 += float(motionSensorVal[1])*MOTION_ALPHA
-                        r3 += float(motionSensorVal[2])*MOTION_ALPHA
+                        r1 += float(soundSensorVal[0]) * SOUND_ALPHA
+                        r2 += float(soundSensorVal[1]) * SOUND_ALPHA
+                        r3 += float(soundSensorVal[2]) * SOUND_ALPHA
                     #if is_collision():
                     print(position)
                     resetSensorFlag()
-                    socketClient.send('{},{}'.format(window_width/2.0,window_height/2.0).encode('utf-8'))
+                    socketClient.send('{},{}'.format(position[0],position[1]).encode('utf-8'))
                     #socketClient.send('400'.encode('utf-8'))
 
             elif(isSound1Detect and isSound2Detect):
@@ -303,7 +398,7 @@ def main():
                 socketClient.send('{},{}'.format(x3,y3).encode('utf-8'))
                 resetSensorFlag()
 
-            time.sleep(1)
+            time.sleep(20)
     except (Exception, KeyboardInterrupt):
         traceback.print_exc()
         observer.stop()
