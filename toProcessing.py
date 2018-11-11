@@ -288,10 +288,10 @@ def main():
                 socketClient.send('200,200'.encode('utf-8'))
                 resetSensorFlag()
             elif(isSound1Detect and isSound3Detect):
-                socketClient.send('700,1000'.encode('utf-8'))
+                socketClient.send('500,700'.encode('utf-8'))
                 resetSensorFlag()
             elif(isSound2Detect and isSound3Detect):
-                socketClient.send('1000,200'.encode('utf-8'))
+                socketClient.send('800,200'.encode('utf-8'))
                 resetSensorFlag()
             elif(isSound1Detect):
                 socketClient.send('{},{}'.format(x1,y1).encode('utf-8'))
