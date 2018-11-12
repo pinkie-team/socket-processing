@@ -376,7 +376,19 @@ def main():
                 if DEMO:
                     socketClient.send('{},{}'.format(window_width/2.0,window_height/2.0).encode('utf-8'))
                 else:
+
+                    loop_count = 0
                     while not is_collision():
+                        loop_count += 1
+
+                        if loop_count >= 300000:
+                            print('**********************')
+                            print('many loop')
+                            print('**********************')
+                            position[0] = window_width/2.0
+                            position[1] = window_height/2.0
+                            break
+
                         r1 += MOTION_ALPHA / float(motionSensorVal[0])
                         r2 += MOTION_ALPHA / float(motionSensorVal[1])
                         r3 += MOTION_ALPHA / float(motionSensorVal[2])
@@ -476,8 +488,7 @@ def main():
                 position[1] = y3
                 socketClient.send('{},{}'.format(position[0],position[1]).encode('utf-8'))
                 resetSensorFlag()
-
-            time.sleep(20)
+            time.sleep(2)
     except (Exception, KeyboardInterrupt):
         traceback.print_exc()
         observer.stop()
