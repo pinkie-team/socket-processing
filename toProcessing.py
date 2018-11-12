@@ -38,11 +38,15 @@ window_height = 900
 x1, x2, x3 = 100.0, window_width / 2.0, window_width - 100.0
 y1, y2, y3 = window_height - 100, 100.0, window_height - 100.0
 '''
+'''
+x1, x2, x3 = 516.8, 1064.0, 1611.2
+y1, y2, y3 = 278.8, 574.0, 869.2
+'''
 
 window_width = 1824
 window_height = 984
-x1, x2, x3 = 516.8, 1064.0, 1611.2
-y1, y2, y3 = 278.8, 574.0, 869.2
+x1, x2, x3 = 364.8, 912.0, 1459.2
+y1, y2, y3 = 196.8, 492.0, 787.2
 
 r1, r2, r3 = 1.0, 1.0, 1.0
 MOTION_ALPHA = 0.1
@@ -376,7 +380,7 @@ def main():
                 socketClient.send('500,700'.encode('utf-8'))
                 resetSensorFlag()
             elif(isMotion2Detect and isMotion3Detect):
-                socketClient.send('800,200'.encode('utf-8'))
+                socketClient.send('1300,200'.encode('utf-8'))
                 resetSensorFlag()
             elif(isMotion1Detect):
                 socketClient.send('{},{}'.format(x1,y1).encode('utf-8'))
