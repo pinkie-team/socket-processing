@@ -393,8 +393,9 @@ def main():
                 if DEMO:
                     socketClient.send('{},{}'.format(window_width/2.0,window_height/2.0).encode('utf-8'))
                 else:
-                    max_count = get_remove_interger_zero_count([float(soundSensorVal[0]), float(soundSensorVal[1]), float(soundSensorVal[2])])
-                    value1, value2, value3 = float(soundSensorVal[0])*pow(10, max_count), float(soundSensorVal[1])*pow(10, max_count), float(soundSensorVal[2])*pow(10, max_count)
+                    max_count = get_remove_interger_zero_count([abs(float(soundSensorVal[0])), abs(float(soundSensorVal[1])), abs(float(soundSensorVal[2]))])
+                    value1, value2, value3 = abs(float(soundSensorVal[0]))*pow(10, max_count), abs(float(soundSensorVal[1]))*pow(10, max_count), abs(float(soundSensorVal[2]))*pow(10, max_count)
+                    print(value1)
                     min_value = min(value1, value2, value3)
                     loop_count = 0
 
@@ -443,7 +444,7 @@ def main():
                 socketClient.send('{},{}'.format(x3,y3).encode('utf-8'))
                 resetSensorFlag()
 
-            time.sleep(1)
+            time.sleep(20)
     except (Exception, KeyboardInterrupt):
         traceback.print_exc()
         observer.stop()
