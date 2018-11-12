@@ -45,8 +45,20 @@ y1, y2, y3 = 278.8, 574.0, 869.2
 
 window_width = 1824
 window_height = 984
+margin_w = window_width * 0.3;
+margin_h = window_height * 0.3;
+
+'''
 x1, x2, x3 = 364.8, 912.0, 1459.2
 y1, y2, y3 = 196.8, 492.0, 787.2
+'''
+x1, y1 = window_width / 2 - margin_w, window_height / 2 + margin_h
+x2, y2 = window_width / 2, window_height / 2 - margin_h
+x3, y3 = window_width / 2 + margin_w, window_height / 2 + margin_h
+AREA_UPLEFT = [window_width/2-margin_w, window_height/2-margin_h]
+AREA_UPRIGHT = [window_width/2+margin_w, window_height/2-margin_h]
+AREA_DOWNCENTER = [window_width/2, window_height/2+margin_h]
+
 
 r1, r2, r3 = 1.0, 1.0, 1.0
 MOTION_ALPHA = 0.1
@@ -370,26 +382,35 @@ def main():
                         r3 += MOTION_ALPHA / float(motionSensorVal[2])
                     #if is_collision():
                     print(position)
-                    resetSensorFlag()
                     socketClient.send('{},{}'.format(position[0],position[1]).encode('utf-8'))
+                    resetSensorFlag()
 
             elif(isMotion1Detect and isMotion2Detect):
-                socketClient.send('200,200'.encode('utf-8'))
+                position = AREA_UPLEFT
+                socketClient.send('{},{}'.format(position[0],position[1]).encode('utf-8'))
                 resetSensorFlag()
             elif(isMotion1Detect and isMotion3Detect):
-                socketClient.send('500,700'.encode('utf-8'))
+                position = AREA_DOWNCENTER
+                socketClient.send('{},{}'.format(position[0],position[1]).encode('utf-8'))
                 resetSensorFlag()
             elif(isMotion2Detect and isMotion3Detect):
-                socketClient.send('1300,200'.encode('utf-8'))
+                position = AREA_UPRIGHT
+                socketClient.send('{},{}'.format(position[0],position[1]).encode('utf-8'))
                 resetSensorFlag()
             elif(isMotion1Detect):
-                socketClient.send('{},{}'.format(x1,y1).encode('utf-8'))
+                position[0] = x1
+                position[1] = y1
+                socketClient.send('{},{}'.format(position[0],position[1]).encode('utf-8'))
                 resetSensorFlag()
             elif(isMotion2Detect):
-                socketClient.send('{},{}'.format(x2,y2).encode('utf-8'))
+                position[0] = x2
+                position[1] = y2
+                socketClient.send('{},{}'.format(position[0],position[1]).encode('utf-8'))
                 resetSensorFlag()
             elif(isMotion3Detect):
-                socketClient.send('{},{}'.format(x3,y3).encode('utf-8'))
+                position[0] = x3
+                position[1] = y3
+                socketClient.send('{},{}'.format(position[0],position[1]).encode('utf-8'))
                 resetSensorFlag()
 
 
@@ -424,28 +445,36 @@ def main():
                         r3 += value3 / min_value
 
                     print(position)
-                    resetSensorFlag()
-                    socketClient.send('{},{}'.format(position[0],position[1]).encode('utf-8'))
                     print(loop_count)
-
+                    socketClient.send('{},{}'.format(position[0],position[1]).encode('utf-8'))
+                    resetSensorFlag()
 
             elif(isSound1Detect and isSound2Detect):
-                socketClient.send('200,200'.encode('utf-8'))
+                position = AREA_UPLEFT
+                socketClient.send('{},{}'.format(position[0],position[1]).encode('utf-8'))
                 resetSensorFlag()
             elif(isSound1Detect and isSound3Detect):
-                socketClient.send('500,700'.encode('utf-8'))
+                position = AREA_DOWNCENTER
+                socketClient.send('{},{}'.format(position[0],position[1]).encode('utf-8'))
                 resetSensorFlag()
             elif(isSound2Detect and isSound3Detect):
-                socketClient.send('800,200'.encode('utf-8'))
+                position = AREA_UPRIGHT
+                socketClient.send('{},{}'.format(position[0],position[1]).encode('utf-8'))
                 resetSensorFlag()
             elif(isSound1Detect):
-                socketClient.send('{},{}'.format(x1,y1).encode('utf-8'))
+                position[0] = x1
+                position[1] = y1
+                socketClient.send('{},{}'.format(position[0],position[1]).encode('utf-8'))
                 resetSensorFlag()
             elif(isSound2Detect):
-                socketClient.send('{},{}'.format(x2,y2).encode('utf-8'))
+                position[0] = x2
+                position[1] = y2
+                socketClient.send('{},{}'.format(position[0],position[1]).encode('utf-8'))
                 resetSensorFlag()
             elif(isSound3Detect):
-                socketClient.send('{},{}'.format(x3,y3).encode('utf-8'))
+                position[0] = x3
+                position[1] = y3
+                socketClient.send('{},{}'.format(position[0],position[1]).encode('utf-8'))
                 resetSensorFlag()
 
             time.sleep(20)
