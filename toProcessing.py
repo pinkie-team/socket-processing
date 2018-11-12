@@ -265,6 +265,30 @@ def is_collision():
 
     return False
 
+def get_remove_interger_zero_count(decimal_values):
+    """
+    与えられた数値の整数部に0があるパターンを除去するには何倍すれば良いかを求める
+    :param decimal_values:  センサー値
+    :type   list
+    :return:    何倍すれば全ての数値から0.111といった整数部が0のパターンを除去できるか
+    :rtype: int
+    """
+    count = 0
+
+    for decimal_value in decimal_values:
+        tmp_count = 0
+        integer = math.modf(decimal_value)[1]
+
+        while integer == 0:
+            decimal_value *= 10
+            integer = math.modf(decimal_value)[1]
+            tmp_count += 1
+
+        if count < tmp_count:
+            count = tmp_count
+
+    return count
+
 def resetSensorFlag():
     global isMotion1Detect,isMotion2Detect,isMotion3Detect
     global isSound1Detect,isSound2Detect,isSound3Detect
@@ -369,15 +393,36 @@ def main():
                 if DEMO:
                     socketClient.send('{},{}'.format(window_width/2.0,window_height/2.0).encode('utf-8'))
                 else:
+                    max_count = get_remove_interger_zero_count([float(soundSensorVal[0]), float(soundSensorVal[1]), float(soundSensorVal[2])])
+                    value1, value2, value3 = float(soundSensorVal[0])*pow(10, max_count), float(soundSensorVal[1])*pow(10, max_count), float(soundSensorVal[2])*pow(10, max_count)
+                    min_value = min(value1, value2, value3)
+                    loop_count = 0
+
                     while not is_collision():
+                        loop_count += 1
+
+                        if loop_count >= 300000:
+                            print('**********************')
+                            print('many loop')
+                            print('**********************')
+                            position[0] = window_width/2.0
+                            position[1] = window_height/2.0
+                            break
+
+                        '''
                         r1 += float(soundSensorVal[0]) * SOUND_ALPHA
                         r2 += float(soundSensorVal[1]) * SOUND_ALPHA
                         r3 += float(soundSensorVal[2]) * SOUND_ALPHA
-                    #if is_collision():
+                        '''
+                        r1 += value1 / min_value
+                        r2 += value2 / min_value
+                        r3 += value3 / min_value
+
                     print(position)
                     resetSensorFlag()
                     socketClient.send('{},{}'.format(position[0],position[1]).encode('utf-8'))
-                    #socketClient.send('400'.encode('utf-8'))
+                    print(loop_count)
+
 
             elif(isSound1Detect and isSound2Detect):
                 socketClient.send('200,200'.encode('utf-8'))
@@ -398,7 +443,7 @@ def main():
                 socketClient.send('{},{}'.format(x3,y3).encode('utf-8'))
                 resetSensorFlag()
 
-            time.sleep(20)
+            time.sleep(1)
     except (Exception, KeyboardInterrupt):
         traceback.print_exc()
         observer.stop()
